@@ -19,7 +19,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function UserIndex({users} : {users: any[]}) {
+export default function UserIndex({users} : {users: { current_page: number, data: any[]}}) {
 
     console.log(users);
 
