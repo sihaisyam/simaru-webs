@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Inertia\Inertia;
 
@@ -38,7 +39,22 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // ✅ 1. Validasi input
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'role' => ['required', 'in:user,admin,manager'],
+        ]);
+        // ✅ 2. Simpan ke database
+        User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => strtolower($validated['role']),
+        ]);
+        // ✅ 3. Redirect dengan pesan sukses
+        return redirect()->back()->with('success', 'User berhasil ditambahkan.');
     }
 
     /**
