@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\RoomController;
 use Inertia\Inertia;
 
 Route::get('home/{nama}', [HomeController::class, 'index']);
@@ -26,6 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
     Route::resource('users', UserController::class);
+    Route::resource('rooms', RoomController::class);
 });
 
 require __DIR__.'/settings.php';
