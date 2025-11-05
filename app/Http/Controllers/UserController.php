@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use App\Models\User;
 use Inertia\Inertia;
 
@@ -78,7 +79,34 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Temukan user berdasarkan ID
+        $user = User::findOrFail($id);
+
+        // Validasi input
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('users')->ignore($user->id), // pastikan email unik kecuali user ini sendiri
+            ],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'role' => ['required', Rule::in(['user', 'admin', 'manager'])],
+        ]);
+
+        // Update data user
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        $user->role = $validated['role'];
+
+        if (!empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        $user->save();
+
+        // Kembalikan respon (misalnya via Inertia)
+        return redirect()->back()->with('success', 'User berhasil diperbarui.');
     }
 
     /**
@@ -86,6 +114,15 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $user = User::findOrFail($id);
+
+        // Cegah menghapus diri sendiri (opsional)
+        if (auth()->id() === $user->id) {
+            return redirect()->back()->with('error', 'Anda tidak dapat menghapus akun sendiri.');
+        }
+
+        $user->delete();
+
+        return redirect()->back()->with('success', 'User berhasil dihapus.');
     }
 }
